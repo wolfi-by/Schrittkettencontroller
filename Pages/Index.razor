@@ -1,0 +1,115 @@
+﻿@page "/"
+@using Schrittkettencontroller.Data
+@inject TextHandler handler
+<h1>Schrittkettencontroller</h1>
+
+<div>
+    <TextelementComponent current="@newElement" />
+    <MatButton Raised="true" @onclick="AddItem">@AddText</MatButton>
+</div>
+
+@if (handler.elements != null)
+{
+    <p style="font-size:x-large;color:chartreuse;">@CompletedText</p>
+    <p style="font-size:x-large;color:chartreuse;">@handler.current.Text</p>
+    @if (handler.isEnabled)
+    {
+        <MatButton Raised="true" @onclick="(()=>handler.Stop())">Stoppen</MatButton>
+    }
+    else
+    {
+
+        <MatButton Raised="true" Disabled="@(!(handler.elements.Count>0))" @onclick="()=>handler.Start()">Starten</MatButton>
+
+    }
+
+    <ul ondragover="event.preventDefault();" style="margin:20px">
+        @foreach (var item in handler.elements)
+        {
+            if (item != null)
+            {
+                <li draggable="true" style="list-style-type:none;" @key="item.ID" tabindex="1"
+                    @ondrop="@(()=> Drop(item))" @ondrag="@(()=> StartDrag(item))">
+                    <div class="topbar">
+                        <TextelementComponent current="@item" />
+                        @if (!handler.isEnabled)
+                        {
+                            <MatButton Class="verticalcenter" Raised="true" @onclick="(() => handler.RemoveItem(item))">Löschen</MatButton>
+                        }
+                    </div>
+                </li>
+            }
+            else
+            {
+                <li>List is empty</li>
+            }
+        }
+    </ul>
+
+
+}
+
+@code{
+    private string CurrentText { get; set; } = string.Empty;
+    private string AddText = "Hinzufügen";
+    private Textelement newElement { get; set; } = new Textelement();
+    private string CompletedText { get; set; } = string.Empty;
+    protected override void OnInitialized()
+    {
+        handler.OnChange += (() => InvokeAsync(StateHasChanged));
+    }
+
+    private void AddItem()
+    {
+        handler.AddItem(newElement);
+        newElement = new Textelement();
+    }
+
+
+
+
+
+
+
+    int currentIndex;
+
+    void StartDrag(Textelement item)
+    {
+        currentIndex = GetIndex(item);
+        Console.WriteLine($"DragStart for {item.ID} index {currentIndex}");
+    }
+
+    void ClickItem(Textelement item)
+    {
+        currentIndex = GetIndex(item);
+    }
+
+    int GetIndex(Textelement item)
+    {
+        return handler.elements.FindIndex(a => a.ID == item.ID);
+    }
+    void Drop(Textelement item)
+    {
+        if (item != null)
+        {
+            Console.WriteLine($"Drop item {item.Text} ({item.ID})");
+            var index = GetIndex(item);
+            Console.WriteLine($"Drop index is {index}, move from {currentIndex}");
+            // get current item
+            var current = handler.elements[currentIndex];
+            // remove item from current index
+            handler.elements.RemoveAt(currentIndex);
+            handler.elements.Insert(index, current);
+
+            // update current selection
+            currentIndex = index;
+
+            StateHasChanged();
+        }
+        else
+        {
+            Console.WriteLine("Drop - null");
+        }
+    }
+
+}

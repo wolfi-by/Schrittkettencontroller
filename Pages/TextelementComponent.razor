@@ -1,0 +1,14 @@
+﻿@page "/textelementcomponent"
+@using Schrittkettencontroller.Data
+
+<MatTextField @bind-Value="@current.Text" Label="Beschreibung"  />
+<MatTextField @bind-Value="@current.Interval" Label="Weiterschaltzeit"  />
+<MatTextField @bind-Value="@current.AdressToWrite" Label="Zieladresse"  />
+<MatTextField @bind-Value="@current.ValueToWrite" Label="Zielwert"  />
+<MatTextField @bind-Value="@current.ID" readonly Label="ID" />
+
+@code {
+    [Parameter]
+    public Textelement current { get; set; }
+
+}
